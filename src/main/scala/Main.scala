@@ -15,9 +15,9 @@ object Main extends App {
   val age = scala.io.StdIn.readInt()
 
   // Connect to the database
-  val url = "jdbc:mysql://pro.freedb.tech:3306/DummyDatabase1"
-  val username = "DummyUsername1"
-  val password = "Bevk42v85J"
+  val url = "jdbc:mysql://localhost:3306/scala"
+  val username = "root"
+  val password = ""
   var connection: Connection = null
 
   try {
@@ -25,11 +25,11 @@ object Main extends App {
     connection = DriverManager.getConnection(url, username, password)
 
     // Insert the user's name and age into a table
-    // val statement = connection.prepareStatement("INSERT INTO users (first_name, last_name, age) VALUES (?, ?, ?)")
-    // statement.setString(1, firstName)
-    // statement.setString(2, lastName)
-    // statement.setInt(3, age)
-    // statement.executeUpdate()
+    val statement = connection.prepareStatement("INSERT INTO users (first_name, last_name, age) VALUES (?, ?, ?)")
+    statement.setString(1, firstName)
+    statement.setString(2, lastName)
+    statement.setInt(3, age)
+    statement.executeUpdate()
   } catch {
     case e: Exception => e.printStackTrace
   } finally {
