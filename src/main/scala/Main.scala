@@ -14,16 +14,16 @@ object Main extends App {
     return(connection)
   }
 
-  def saveUser(firstName: String, lastName: String, age: Int) = {
+  def saveCar(brand: String, name: String, photo: String) = {
     val connection = connect
 
     try {
-      // Insert the user's name and age into a table
-      val statement = connection.prepareStatement("INSERT INTO users (first_name, last_name, age) VALUES (?, ?, ?)")
+      // Insert the cars's brand, name and photo into a table
+      val statement = connection.prepareStatement("INSERT INTO cars (brand, name, photo) VALUES (?, ?, ?)")
 
-      statement.setString(1, firstName)
-      statement.setString(2, lastName)
-      statement.setInt(3, age)
+      statement.setString(1, brand)
+      statement.setString(2, name)
+      statement.setString(3, photo)
       statement.executeUpdate()
     } catch {
       case e: Exception => e.printStackTrace
@@ -32,22 +32,22 @@ object Main extends App {
     }
   }
 
-  def loadUsers(): Unit = {
+  def loadCars(): Unit = {
     val connection = connect
 
     try {
-      // Query all the users from the table
+      // Query all the cars from the table
       val statement = connection.createStatement()
-      val resultSet = statement.executeQuery("SELECT * FROM users")
+      val resultSet = statement.executeQuery("SELECT * FROM cars")
 
-      // Print the users
+      // Print the cars
       while (resultSet.next()) {
         val id = resultSet.getInt("id")
-        val firstName = resultSet.getString("first_name")
-        val lastName = resultSet.getString("last_name")
-        val age = resultSet.getInt("age")
+        val brand = resultSet.getString("brand")
+        val name = resultSet.getString("name")
+        val photo = resultSet.getString("photo")
 
-        println(s"#$id: $firstName $lastName is $age years old.")
+        println(s"#$id: $brand $name")
       }
 
       println("")
@@ -58,27 +58,28 @@ object Main extends App {
     }
   }
 
-  def createUser() = {
-    // Ask the user to enter their first name
-    print("Enter your first name: ")
-    val firstName = scala.io.StdIn.readLine()
+  def createCar() = {
+    
+    // Ask the user to enter the car's brand
+    print("Enter the brand name: ")
+    val brand = scala.io.StdIn.readLine()
 
-    // Ask the user to enter their last name
-    print("Enter your last name: ")
-    val lastName = scala.io.StdIn.readLine()
+    // Ask the user to enter the car's name
+    print("Enter the car's name: ")
+    val name = scala.io.StdIn.readLine()
 
-    // Ask the user to enter their age
-    print("Enter your age: ")
-    val age = scala.io.StdIn.readInt()
+    // Ask the user to enter the car's photo
+    print("Enter the car's photo: ")
+    val photo = scala.io.StdIn.readLine()
 
-    // Saving the user
-    saveUser(firstName, lastName, age)
+    // Saving the car
+    saveCar(brand, name, photo)
   }
 
   def showMenu(): Int = {
-    println("[ User Repository ]")
-    println("1 - Add user")
-    println("2 - Show users")
+    println("[ Car Repository ]")
+    println("1 - Show all cars")
+    println("2 - Add a new car")
     println("3 - Quit")
     print("> ")
 
@@ -92,11 +93,11 @@ object Main extends App {
     option = showMenu
 
     if (option == 1) {
-      createUser()
-    }
+      loadCars()
 
+    }
     if (option == 2) {
-      loadUsers()
+      createCar()
     }
 
     print(option)
