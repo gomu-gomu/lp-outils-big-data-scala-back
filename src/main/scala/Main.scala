@@ -1,6 +1,60 @@
+import java.awt.event.ActionEvent
+import java.awt.{BorderLayout, GridBagLayout}
+import javax.swing._
 import java.sql.{Connection, DriverManager, ResultSet}
 
 object Main extends App {
+  val carList = new JList[String](Array[String]())
+
+  SwingUtilities.invokeLater(new Runnable() {
+    override def run(): Unit = {
+      createAndShowGUI()
+    }
+  })
+
+  def createAndShowGUI(): Unit = {
+    val frame = new JFrame("Car Repository")
+    frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
+    frame.setSize(500, 300)
+    frame.setLocationRelativeTo(null)
+    frame.setVisible(true)
+
+    val contentPane = frame.getContentPane()
+    contentPane.setLayout(new BorderLayout())
+
+    val scrollPane = new JScrollPane(carList)
+    contentPane.add(scrollPane, BorderLayout.CENTER)
+
+    val buttonPanel = new JPanel(new GridBagLayout())
+    val addButton = new JButton("Add Car")
+    val deleteButton = new JButton("Delete Car")
+
+    buttonPanel.add(addButton)
+    buttonPanel.add(deleteButton)
+    contentPane.add(buttonPanel, BorderLayout.SOUTH)
+
+    updateCarList()
+
+    addButton.addActionListener((_: ActionEvent) => {
+      val brand = JOptionPane.showInputDialog(frame, "Enter the brand name:")
+      val name = JOptionPane.showInputDialog(frame, "Enter the car's name:")
+      val photo = JOptionPane.showInputDialog(frame, "Enter the car's photo:")
+
+      saveCar(brand, name, photo)
+      updateCarList()
+    })
+
+    deleteButton.addActionListener((_: ActionEvent) => {
+      val selectedCar = carList.getSelectedValue()
+      
+      if (selectedCar != null) {
+        var regex = """#(\d+)""".r
+        var carId = regex.findFirstMatchIn(selectedCar).map(_.group(1).toInt)
+        deleteCar(carId.getOrElse(0))
+        updateCarList()
+      }
+    })
+  }
 
   def connect(): Connection = {
     val url = "jdbc:mysql://localhost:3306/scala"
@@ -32,25 +86,39 @@ object Main extends App {
     }
   }
 
-  def loadCars(): Unit = {
-    val connection = connect
+  def loadCars(): Seq[String] = {
+    val connection = connect()
 
     try {
-      // Query all the cars from the table
       val statement = connection.createStatement()
       val resultSet = statement.executeQuery("SELECT * FROM cars")
+      var cars: Seq[String] = Seq()
 
-      // Print the cars
       while (resultSet.next()) {
         val id = resultSet.getInt("id")
         val brand = resultSet.getString("brand")
         val name = resultSet.getString("name")
         val photo = resultSet.getString("photo")
 
-        println(s"#$id: $brand $name")
+        cars = cars :+ s"#$id: $brand $name"
       }
 
-      println("")
+      return cars
+    } catch {
+      case e: Exception => e.printStackTrace
+      return Seq()
+    } finally {
+      connection.close()
+    }
+  }
+
+  def deleteCar(id: Int) = {
+    val connection = connect()
+
+    try {
+      val statement = connection.prepareStatement("DELETE FROM cars WHERE id = ?")
+      statement.setInt(1, id)
+      statement.executeUpdate()
     } catch {
       case e: Exception => e.printStackTrace
     } finally {
@@ -58,48 +126,12 @@ object Main extends App {
     }
   }
 
-  def createCar() = {
-    
-    // Ask the user to enter the car's brand
-    print("Enter the brand name: ")
-    val brand = scala.io.StdIn.readLine()
-
-    // Ask the user to enter the car's name
-    print("Enter the car's name: ")
-    val name = scala.io.StdIn.readLine()
-
-    // Ask the user to enter the car's photo
-    print("Enter the car's photo: ")
-    val photo = scala.io.StdIn.readLine()
-
-    // Saving the car
-    saveCar(brand, name, photo)
+  def updateCarList() = {
+    val cars = loadCars()
+    carList.setListData(cars.toArray)
   }
 
-  def showMenu(): Int = {
-    println("[ Car Repository ]")
-    println("1 - Show all cars")
-    println("2 - Add a new car")
-    println("3 - Quit")
-    print("> ")
-
-    return(scala.io.StdIn.readInt())
+  while (true) {
+    Thread.sleep(1000)
   }
-
-  // Option definition
-  var option = 0;
-
-  do {
-    option = showMenu
-
-    if (option == 1) {
-      loadCars()
-
-    }
-    if (option == 2) {
-      createCar()
-    }
-
-    print(option)
-  } while (option != 3)
 }
